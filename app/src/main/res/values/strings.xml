@@ -5,4 +5,5 @@
     <string name="error_body">Somthing glich happened.</string>
     <string name="some_exception_happen">Some exception happened.</string>
     <string name="no_internet_connection">No internet connection.</string>
+    <string name="width_height">Width : %1$s , Height : %2$s</string>
 </resources>

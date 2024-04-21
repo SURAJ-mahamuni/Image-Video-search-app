@@ -67,11 +67,11 @@ fun TextView.getTextViewHeight(): Int {
     return this.measuredHeight
 }
 
-fun View.setHideView() {
+fun View.hideView() {
     visibility = View.GONE
 }
 
-fun View.setShowView() {
+fun View.showView() {
     visibility = View.VISIBLE
 }
 
