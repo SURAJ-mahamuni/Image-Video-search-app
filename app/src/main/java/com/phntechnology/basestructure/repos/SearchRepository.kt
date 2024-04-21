@@ -1,6 +1,7 @@
 package com.phntechnology.basestructure.repos
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.phntechnology.basestructure.R
@@ -34,6 +35,7 @@ class SearchRepository @Inject constructor(
                     searchResultMutableLiveData.postValue(NetworkResult.Error(R.string.error_body))
                 }
             } catch (e: Exception) {
+                Log.e("exception",e.message ?: "")
                 searchResultMutableLiveData.postValue(NetworkResult.Error(R.string.some_exception_happen))
             }
         } else {
