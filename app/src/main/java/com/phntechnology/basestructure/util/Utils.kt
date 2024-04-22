@@ -9,6 +9,7 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -20,16 +21,112 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.textfield.TextInputEditText
+import okhttp3.Request
+import okhttp3.RequestBody
+import java.io.UnsupportedEncodingException
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 import java.util.regex.Pattern
+import kotlin.math.abs
+
+
+@SuppressLint("SimpleDateFormat")
+fun formatDateTime(dateTimeString: String): String {
+    // Define the input format
+    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
+    val inputDate = inputFormat.parse(dateTimeString)
+
+    // Define the output format
+    val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    // Format the date
+    return outputFormat.format(inputDate)
+}
+
+fun calculateTimeDuration(dateTimeString: String): String {
+    // Get the current date-time in the desired format
+    var currentDateTimeString = ""
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        currentDateTimeString = formatDateTime(LocalDateTime.now().toString())
+    }
+    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
+    val inputDate = inputFormat.parse(dateTimeString)
+
+    // Define the output format
+    val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    // Parse the provided date-time string and the current date-time string
+    val providedDateTime =
+        SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(outputFormat.format(inputDate))
+    val currentDateTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(currentDateTimeString)
+
+    // Calculate the difference between the provided date-time and the current date-time
+    val diffInMillis = abs(providedDateTime.time - currentDateTime.time)
+
+    // Convert milliseconds to days, hours, minutes, and seconds
+    val days = diffInMillis / (1000 * 60 * 60 * 24)
+    val hours = diffInMillis / (1000 * 60 * 60) % 24
+    val minutes = diffInMillis / (1000 * 60) % 60
+    val seconds = diffInMillis / 1000 % 60
+
+    // Construct the formatted duration string
+    val durationString = "${days}day ${hours}hours ${minutes}min ${seconds}sec"
+
+    return durationString
+}
+
+fun requestToCurl(request: Request): String {
+    val builder = StringBuilder()
+    builder.append("curl -X ${request.method} \\\n")
+
+    // Append headers
+    for ((name, value) in request.headers) {
+        builder.append("    -H \"$name: $value\" \\\n")
+    }
+
+    // Append request body if present
+    request.body?.let { requestBody ->
+        if (requestBody is RequestBody) {
+            try {
+                val charset = requestBody.contentType()?.charset() ?: Charsets.UTF_8
+                val bodyString = requestBodyToString(requestBody, charset)
+                val escapedBody = escapeSpecialChars(bodyString)
+                builder.append("    -d \"$escapedBody\" \\\n")
+            } catch (e: UnsupportedEncodingException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // Append URL
+    builder.append("    \"${request.url}\"")
+
+    return builder.toString()
+}
+
+@Throws(UnsupportedEncodingException::class)
+private fun requestBodyToString(
+    requestBody: RequestBody,
+    charset: java.nio.charset.Charset
+): String {
+    val buffer = okio.Buffer()
+    requestBody.writeTo(buffer)
+    return buffer.readString(charset)
+}
+
+private fun escapeSpecialChars(input: String): String {
+    return input.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+}
 
 
 fun RecyclerView.getRecyclerViewHeight(): Int {

@@ -19,4 +19,9 @@
         android:name="com.phntechnology.basestructure.fragment.SearchFragment"
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" />
+    <fragment
+        android:id="@+id/videoSearchFragment"
+        android:name="com.phntechnology.basestructure.fragment.VideoSearchFragment"
+        android:label="fragment_video_search"
+        tools:layout="@layout/fragment_video_search" />
 </navigation>
